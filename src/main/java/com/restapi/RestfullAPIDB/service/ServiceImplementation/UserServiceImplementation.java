@@ -3,13 +3,14 @@ package com.restapi.RestfullAPIDB.service.ServiceImplementation;
 
 import com.restapi.RestfullAPIDB.dto.UserDto;
 import com.restapi.RestfullAPIDB.entity.User;
+import com.restapi.RestfullAPIDB.exception.EmailAlreadyExistsException;
+import com.restapi.RestfullAPIDB.exception.ResourceNotFoundException;
 import com.restapi.RestfullAPIDB.mapper.AutoUserMapper;
-import com.restapi.RestfullAPIDB.mapper.UserMapper;
 import com.restapi.RestfullAPIDB.repository.UserRepository;
 import com.restapi.RestfullAPIDB.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,12 +31,15 @@ public class UserServiceImplementation implements UserService {
         // Here we are retrieving our data into userjpa entity into UserDto.
        // User userref= UserMapper.mapToUser(userdto);
 
-      //  User userref=modelMapperr.map(userdto,User.class);
+       Optional<User> optionallUser= userRepoository.findByEmail(userdo.getEmail());
+
+       if(optionallUser.isPresent()){
+           throw new EmailAlreadyExistsException("Email Already exists in the database");
+       }
      User userref= AutoUserMapper.MAPPERs.mapToUser(userdo);
 
         User userdtoref=  userRepoository.save(userref);
 
-     // UserDto userref1=modelMapperr.map(userdtoref,UserDto.class);
 
         UserDto userref1=AutoUserMapper.MAPPERs.mapToUserDto(userdtoref);
       return userref1;
@@ -45,30 +49,16 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public UserDto getUserById(Long id) {
-        Optional<User>  gettingUsersData= userRepoository.findById(id);
-        User optoonalUser= gettingUsersData.get();
+      User gettingUsersData= userRepoository.findById(id).orElseThrow(()->
+             new ResourceNotFoundException("User","id",id)
+        );
+        return AutoUserMapper.MAPPERs.mapToUserDto(gettingUsersData);
 
-    //    return UserMapper.mapToUserDto(optoonalUser);
-       // return modelMapperr.map(optoonalUser,UserDto.class);
-
-        // here in the above source code we have done modification on the source code model mapper.
-
-        // This is by the Auto User Mapper.
-
-        return AutoUserMapper.MAPPERs.mapToUserDto(gettingUsersData.get());
-
-        // Here this optional data will convert into user JPA entity that is the reason we have done by using user mapper.
     }
 
     @Override
     public List<UserDto> getAllUserDetails() {
         List<User>  suere= userRepoository.findAll();
-   //    return suere.stream().map(UserMapper::mapToUserDto).collect(Collectors.toList());
-// by using model mapper.
-     //   return suere.stream().map((users) -> modelMapperr.map(users,UserDto.class)).collect(Collectors.toList());
-    // here in the above source code we have added our value by using lambda expressions....
-
-        // by using Auto User Mapper.
 
         return suere.stream().map((user)
                 ->AutoUserMapper.MAPPERs.mapToUserDto(user)).collect(Collectors.toList());
@@ -80,9 +70,14 @@ public class UserServiceImplementation implements UserService {
 
 
     @Override
-    public UserDto updatingUserDetails(User user) {
+    public UserDto updatingUserDetails(@Valid UserDto user) {
 
-        User updatingUserDetailsss= userRepoository.findById(user.getId()).get();
+        User updatingUserDetailsss= userRepoository.findById(user.getId()).orElseThrow(
+                ()->new ResourceNotFoundException("User","id",user.getId())
+        );
+
+        // So here in the above code we have thrown our own custom exception if the data is not available
+        // in the data base ....
 
 
         updatingUserDetailsss.setFirstName(user.getFirstName());
@@ -102,6 +97,15 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public void deletingUserDetails(Long id) {
+
+     User user=   userRepoository.findById(id).orElseThrow(
+        ()-> new ResourceNotFoundException("User","id",id));
+
+     // So here in the above source code we have thrown an exception ,
+        // firstly we are checking the data in the data base before deleting if the data is not available from the database,
+        // then it will thrown the custom  exception what we have been declared...
+
+
 
        userRepoository.deleteById(id);
     }

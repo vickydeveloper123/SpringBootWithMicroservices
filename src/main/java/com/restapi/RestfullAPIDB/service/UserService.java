@@ -1,7 +1,7 @@
 package com.restapi.RestfullAPIDB.service;
 
 import com.restapi.RestfullAPIDB.dto.UserDto;
-import com.restapi.RestfullAPIDB.entity.User;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public interface UserService {
 
     List<UserDto> getAllUserDetails();
 
-    UserDto updatingUserDetails(User user);
+    UserDto updatingUserDetails( UserDto user);
 
 
     void deletingUserDetails(Long id);

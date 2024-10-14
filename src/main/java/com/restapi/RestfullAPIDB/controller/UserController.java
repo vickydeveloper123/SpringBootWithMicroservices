@@ -2,14 +2,19 @@ package com.restapi.RestfullAPIDB.controller;
 
 import com.restapi.RestfullAPIDB.dto.UserDto;
 import com.restapi.RestfullAPIDB.entity.User;
+import com.restapi.RestfullAPIDB.exception.ErrorDetails;
+import com.restapi.RestfullAPIDB.exception.ResourceNotFoundException;
 import com.restapi.RestfullAPIDB.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +28,7 @@ public class UserController {
     private UserService userServiceee;
 
     @PostMapping
-    public ResponseEntity<UserDto> createUserData(@RequestBody UserDto userContriller){
+    public ResponseEntity<UserDto> createUserData(@RequestBody @Valid UserDto userContriller){
      UserDto usersCreatedData=   userServiceee.createUser(userContriller);
 
         return new ResponseEntity<>(usersCreatedData, HttpStatus.CREATED);
@@ -56,7 +61,7 @@ public class UserController {
 
     @PutMapping("{id}")
     public ResponseEntity<UserDto> updatingUser(@PathVariable("id")Long userId,
-                                             @RequestBody User user){
+                                             @RequestBody @Valid UserDto user){
 
         user.setId(userId);
         UserDto updated=userServiceee.updatingUserDetails(user);
@@ -74,5 +79,16 @@ public class UserController {
     }
 
 
+//    @ExceptionHandler(ResourceNotFoundException.class)
+//    public ResponseEntity<ErrorDetails> resourceNotFoundException(ResourceNotFoundException exception,
+//                                                                  WebRequest webrequest){
+//        ErrorDetails errorDetails=new ErrorDetails(
+//                LocalDateTime.now(),
+//                exception.getMessage(),
+//                webrequest.getDescription(false),
+//                "User_Not_Found"
+//        );
+//        return new ResponseEntity<>(errorDetails,HttpStatus.NOT_FOUND);
+//    }
 
 }
